@@ -6,13 +6,16 @@ const dotenv = require('dotenv');
 const authRoutes = require('./routes/authRoutes');
 const productRoutes = require('./routes/productRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
-const orderRoutes = require("./routes/orderRoutes"); 
+const orderRoutes = require("./routes/orderRoutes");
+const chatbotRoutes = require("./routes/chatbotRoutes");
 
 dotenv.config();
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
@@ -26,6 +29,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/reports", require("./routes/reportRoutes"));
+app.use("/api", chatbotRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
