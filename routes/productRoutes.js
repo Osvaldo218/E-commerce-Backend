@@ -1,6 +1,17 @@
 const express = require("express");
 const router = express.Router();
 const Product = require("../models/Product");
+const { protect, authorizeRoles } = require("../middleware/authMiddleware");
+
+// Ruta accesible solo para administradores
+router.post("/create", protect, authorizeRoles("admin"), (req, res) => {
+  res.json({ message: "Producto creado correctamente" });
+});
+
+// Ruta accesible para administradores y empleados
+router.get("/list", protect, authorizeRoles("admin", "empleado"), (req, res) => {
+  res.json({ message: "Lista de productos" });
+});
 
 // Obtener productos con filtros y paginación
 router.get("/", async (req, res) => {
