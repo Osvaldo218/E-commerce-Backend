@@ -3,17 +3,37 @@ const router = express.Router();
 const Product = require("../models/Product");
 const { protect, authorizeRoles } = require("../middleware/authMiddleware");
 
-// Ruta accesible solo para administradores
-router.post("/create", protect, authorizeRoles("admin"), (req, res) => {
-  res.json({ message: "Producto creado correctamente" });
+// ✅ Crear un producto (solo administradores)
+router.post("/create", protect, authorizeRoles("admin"), async (req, res) => {
+  try {
+    const { name, price, stock, category, description, image } = req.body;
+
+    if (!name || !price || stock === undefined) {
+      return res.status(400).json({ message: "Faltan datos obligatorios" });
+    }
+
+    const newProduct = new Product({ name, price, stock, category, description, image });
+    await newProduct.save();
+
+    res.status(201).json(newProduct);
+  } catch (error) {
+    console.error("❌ Error al agregar producto:", error);
+    res.status(500).json({ message: "Error en el servidor" });
+  }
 });
 
-// Ruta accesible para administradores y empleados
-router.get("/list", protect, authorizeRoles("admin", "empleado"), (req, res) => {
-  res.json({ message: "Lista de productos" });
+// ✅ Obtener la lista de productos (admin y empleados)
+router.get("/list", protect, authorizeRoles("admin", "empleado"), async (req, res) => {
+  try {
+    const products = await Product.find();
+    res.json(products);
+  } catch (error) {
+    console.error("❌ Error al obtener productos:", error);
+    res.status(500).json({ message: "Error en el servidor" });
+  }
 });
 
-// Obtener productos con filtros y paginación
+// ✅ Obtener productos con filtros y paginación opcional
 router.get("/", async (req, res) => {
   try {
     let query = {};
@@ -21,9 +41,9 @@ router.get("/", async (req, res) => {
     if (req.query.minStock) query.stock = { $gte: parseInt(req.query.minStock) };
     if (req.query.search) query.name = { $regex: req.query.search, $options: "i" };
 
-    const page = parseInt(req.query.page) || 1;
-    const limit = 5; // Número de productos por página
-    const skip = (page - 1) * limit;
+    const page = parseInt(req.query.page);
+    const limit = 5;
+    const skip = page ? (page - 1) * limit : 0;
 
     const sortField = req.query.sort || "name";
     const sortOrder = req.query.order === "desc" ? -1 : 1;
@@ -32,43 +52,40 @@ router.get("/", async (req, res) => {
     const products = await Product.find(query)
       .sort({ [sortField]: sortOrder })
       .skip(skip)
-      .limit(limit);
+      .limit(page ? limit : 0); // Si no hay paginación, devuelve todo
 
-    res.json({
-      products,
-      totalPages: Math.ceil(totalProducts / limit),
-      currentPage: page,
-    });
+    // ✅ Corregido: Devuelve un array directamente
+    res.json(products);
   } catch (error) {
-    console.error("Error al obtener productos:", error);
+    console.error("❌ Error al obtener productos:", error);
     res.status(500).json({ message: "Error en el servidor" });
   }
 });
 
-// Agregar producto con validación de datos
+// ✅ Agregar un producto (sin roles)
 router.post("/", async (req, res) => {
   try {
-    const { name, price, stock, category, description } = req.body;
+    const { name, price, stock, category, description, image } = req.body;
 
     if (!name || !price || stock === undefined) {
       return res.status(400).json({ message: "Faltan datos obligatorios" });
     }
 
-    const newProduct = new Product({ name, price, stock, category, description });
+    const newProduct = new Product({ name, price, stock, category, description, image });
     await newProduct.save();
-    
+
     res.status(201).json(newProduct);
   } catch (error) {
-    console.error("Error al agregar producto:", error);
+    console.error("❌ Error al agregar producto:", error);
     res.status(500).json({ message: "Error en el servidor" });
   }
 });
 
-// Eliminar producto con verificación
+// ✅ Eliminar un producto
 router.delete("/:id", async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
-    
+
     if (!product) {
       return res.status(404).json({ message: "Producto no encontrado" });
     }
@@ -76,7 +93,7 @@ router.delete("/:id", async (req, res) => {
     await product.deleteOne();
     res.json({ message: "Producto eliminado correctamente" });
   } catch (error) {
-    console.error("Error al eliminar producto:", error);
+    console.error("❌ Error al eliminar producto:", error);
     res.status(500).json({ message: "Error en el servidor" });
   }
 });
