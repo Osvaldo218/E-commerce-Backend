@@ -29,6 +29,8 @@ app.use('/api/products', productRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/reports", require("./routes/reportRoutes"));
+app.use("/api/checkout", require("./routes/checkoutRoutes"));
+app.use("/api/cart", require("./routes/cartRoutes"));
 app.use("/api", chatbotRoutes);
 
 const PORT = process.env.PORT || 5000;
