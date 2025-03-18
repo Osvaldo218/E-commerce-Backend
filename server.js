@@ -8,6 +8,7 @@ const productRoutes = require('./routes/productRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const orderRoutes = require("./routes/orderRoutes");
 const chatbotRoutes = require("./routes/chatbotRoutes");
+const userRoutes = require("./routes/userRoutes.js");
 
 dotenv.config();
 const app = express();
@@ -31,6 +32,7 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/reports", require("./routes/reportRoutes"));
 app.use("/api/checkout", require("./routes/checkoutRoutes"));
 app.use("/api/cart", require("./routes/cartRoutes"));
+app.use("/api/users", userRoutes);
 app.use("/api", chatbotRoutes);
 
 const PORT = process.env.PORT || 5000;
