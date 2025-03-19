@@ -4,7 +4,10 @@ const User = require("../models/User");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcryptjs");
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
+const dotenv = require("dotenv");
+
+dotenv.config();
 
 // Registro de usuario
 router.post("/register", async (req, res) => {
@@ -39,12 +42,20 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ message: "Contraseña incorrecta" });
     }
 
-    // Crear token JWT
+    // Crear token JWT con duración de 7 días
     const token = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "7d" } // 🔥 Ahora dura 7 días
     );
+
+    // Enviar token en una cookie segura
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días en milisegundos
+    });
 
     res.status(200).json({ message: "Login exitoso", token });
   } catch (error) {
@@ -52,6 +63,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
+// Configurar transporte de correo
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -89,6 +101,7 @@ router.post("/forgot-password", async (req, res) => {
   }
 });
 
+// Restablecimiento de contraseña
 router.post("/reset-password/:token", async (req, res) => {
   try {
     const { token } = req.params;
@@ -111,6 +124,12 @@ router.post("/reset-password/:token", async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Error en el servidor" });
   }
+});
+
+// Cerrar sesión
+router.post("/logout", (req, res) => {
+  res.cookie("token", "", { httpOnly: true, expires: new Date(0) });
+  res.json({ message: "Sesión cerrada correctamente" });
 });
 
 module.exports = router;
