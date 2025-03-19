@@ -32,6 +32,7 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/reports", require("./routes/reportRoutes"));
 app.use("/api/checkout", require("./routes/checkoutRoutes"));
 app.use("/api/cart", require("./routes/cartRoutes"));
+app.use("/api/sales", require("./routes/salesRoutes"));
 app.use("/api/users", userRoutes);
 app.use("/api", chatbotRoutes);
 

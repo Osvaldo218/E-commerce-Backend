@@ -1,6 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const Sale = require("../Models/Sale");
+const { getSalesStats } = require("../controllers/salesController");
+
+router.get("/stats", getSalesStats);
 
 // Registrar una venta
 router.post("/", async (req, res) => {
