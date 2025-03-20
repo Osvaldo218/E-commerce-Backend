@@ -1,37 +1,52 @@
 const jwt = require("jsonwebtoken");
-const User = require("../models/User.js");
+const User = require("../models/User");
 
 const protect = async (req, res, next) => {
-  let token = req.headers.authorization;
-
-  if (!token || !token.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "Acceso no autorizado" });
-  }
-
   try {
-    token = token.split(" ")[1]; // Extraer solo el token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const token = req.headers.authorization?.split(" ")[1];
+    console.log("📌 Token recibido:", token); // ✅ Muestra el token en la consola
 
-    // Buscar al usuario en la BD y excluir la contraseña
-    const user = await User.findById(decoded.id).select("-password");
-
-    if (!user) {
-      return res.status(401).json({ message: "Usuario no encontrado" });
+    if (!token) {
+      console.error("❌ No se envió token");
+      return res.status(401).json({ message: "No autorizado. Token requerido." });
     }
 
-    req.user = user; // Almacenar el usuario en `req.user`
+    // 🔹 Verificamos y decodificamos el token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("📌 Token decodificado:", decoded);
+
+    // 🔹 Buscar usuario en la base de datos
+    req.user = await User.findById(decoded.id).select("-password");
+
+    if (!req.user) {
+      console.error("❌ Usuario no encontrado en la BD");
+      return res.status(404).json({ message: "Usuario no encontrado." });
+    }
+
     next();
   } catch (error) {
-    console.error("Error en autenticación:", error);
-    res.status(401).json({ message: "Token inválido" });
+    console.error("❌ Error en autenticación:", error);
+
+    // 🔹 Diferenciar error de token expirado
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({ message: "Token expirado. Inicia sesión nuevamente." });
+    }
+
+    res.status(401).json({ message: "Token no válido o expirado." });
   }
 };
 
-const authorizeRoles = (...roles) => (req, res, next) => {
-  if (!req.user || !roles.includes(req.user.role)) {
-    return res.status(403).json({ message: "No tienes permisos suficientes" });
-  }
-  next();
+const authorizeRoles = (...roles) => {
+  return (req, res, next) => {
+    console.log("📌 Verificando rol:", req.user?.role); // ✅ Verifica qué rol tiene el usuario
+
+    if (!req.user || !roles.includes(req.user.role)) {
+      console.error("❌ Acceso denegado. Rol insuficiente.");
+      return res.status(403).json({ message: "No tienes permisos para esta acción." });
+    }
+
+    next();
+  };
 };
 
 module.exports = { protect, authorizeRoles };

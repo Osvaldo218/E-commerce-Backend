@@ -5,10 +5,13 @@ const UserSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  role: { type: String, enum: ["admin", "vendedor"], default: "vendedor" },
-  resetToken: String,
-  tokenExpiration: Date,
-});
+  role: { 
+    type: String, 
+    enum: ["admin", "vendedor", "cliente"], 
+    default: "cliente"
+  },
+  verified: { type: Boolean, default: false }
+}, { timestamps: true });
 
 // Hashear contraseña antes de guardar
 UserSchema.pre("save", async function (next) {

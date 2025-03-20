@@ -24,7 +24,7 @@ const getAllUsers = async (req, res) => {
     res.status(500).json({ message: "Error en el servidor" });
   }
 };
-
+  
 // 📌 Actualizar usuario por ID
 const updateUser = async (req, res) => {
   try {

@@ -6,6 +6,7 @@ const nodemailer = require("nodemailer");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
+const { protect } = require("../middleware/authMiddleware");
 
 dotenv.config();
 
@@ -130,6 +131,19 @@ router.post("/reset-password/:token", async (req, res) => {
 router.post("/logout", (req, res) => {
   res.cookie("token", "", { httpOnly: true, expires: new Date(0) });
   res.json({ message: "Sesión cerrada correctamente" });
+});
+
+// ✅ Obtener usuario autenticado
+router.get("/user", protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+    if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
+
+    res.json(user);
+  } catch (error) {
+    console.error("❌ Error obteniendo usuario:", error);
+    res.status(500).json({ message: "Error del servidor" });
+  }
 });
 
 module.exports = router;

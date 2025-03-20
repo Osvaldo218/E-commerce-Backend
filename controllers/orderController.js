@@ -1,84 +1,55 @@
-const Order = require("../models/Order.js");
+const Order = require("../models/Order");
+const Product = require("../models/Product");
 
-// 📌 Crear una orden
+// 🔹 Crear una nueva orden
 const createOrder = async (req, res) => {
   try {
-    const { userId, items, totalPrice } = req.body;
+    const { orderItems, totalPrice } = req.body;
 
-    // Validar datos de entrada
-    if (!userId || !items || items.length === 0 || !Number.isFinite(totalPrice)) {
-      return res.status(400).json({ message: "Faltan datos o hay valores inválidos en la orden" });
+    if (!orderItems || orderItems.length === 0) {
+      return res.status(400).json({ message: "No hay productos en la orden" });
     }
 
     const newOrder = new Order({
-      user: userId,
-      items,
+      user: req.user._id,
+      orderItems,
       totalPrice,
-      orderStatus: "Pendiente", // Estado inicial
-      createdAt: new Date(),
-      statusHistory: [{ status: "Pendiente", date: new Date() }],
     });
 
     await newOrder.save();
-    res.status(201).json({ message: "Orden creada exitosamente", order: newOrder });
+    res.status(201).json({ message: "Orden creada con éxito", order: newOrder });
   } catch (error) {
-    console.error("Error al crear la orden:", error);
-    res.status(500).json({ message: "Error interno al crear la orden", error });
+    console.error("Error al crear orden:", error);
+    res.status(500).json({ message: "Error en el servidor" });
   }
 };
 
-// 📌 Obtener órdenes de un usuario
+// 🔹 Obtener todas las órdenes del usuario autenticado
 const getUserOrders = async (req, res) => {
   try {
-    const userId = req.params.userId;
-    const orders = await Order.find({ user: userId }).populate("items.product");
-
-    if (!orders.length) {
-      return res.status(404).json({ message: "No se encontraron órdenes para este usuario" });
-    }
-
+    const orders = await Order.find({ user: req.user._id }).populate("orderItems.product", "name price");
     res.json(orders);
   } catch (error) {
     console.error("Error al obtener órdenes:", error);
-    res.status(500).json({ message: "Error interno al obtener órdenes", error });
+    res.status(500).json({ message: "Error en el servidor" });
   }
 };
 
-// 📌 Actualizar el estado de una orden (Admin/Vendedor)
-const updateOrderStatus = async (req, res) => {
+// 🔹 Obtener todas las órdenes (solo admin)
+const getAllOrders = async (req, res) => {
   try {
-    const { orderId } = req.params;
-    const orderStatus = req.body.orderStatus?.trim().toLowerCase();
+    console.log("📌 Usuario autenticado:", req.user); // ✅ Verifica si el usuario está autenticado
 
-    // Validar que se envió un estado válido
-    const validStatuses = ["pendiente", "enviado", "entregado", "cancelado"];
-    if (!validStatuses.includes(orderStatus)) {
-      return res.status(400).json({ message: "Estado de orden no válido" });
+    const orders = await Order.find().populate("user", "name email");
+
+    if (orders.length === 0) {
+      return res.status(404).json({ message: "No hay pedidos disponibles" });
     }
 
-    // Convertir a formato capitalizado ("Pendiente", "Enviado", etc.)
-    const formattedStatus = orderStatus.charAt(0).toUpperCase() + orderStatus.slice(1);
-
-    // Actualizar el estado de la orden y agregar al historial
-    const updatedOrder = await Order.findByIdAndUpdate(
-      orderId,
-      {
-        orderStatus: formattedStatus,
-        $push: { statusHistory: { status: formattedStatus, date: new Date() } },
-      },
-      { new: true }
-    );
-
-    if (!updatedOrder) {
-      return res.status(404).json({ message: "Orden no encontrada" });
-    }
-
-    res.json({ message: "Estado de orden actualizado", order: updatedOrder });
+    res.status(200).json(orders);
   } catch (error) {
-    console.error("Error al actualizar orden:", error);
-    res.status(500).json({ message: "Error interno al actualizar la orden", error });
+    console.error("❌ Error al obtener pedidos:", error);
+    res.status(500).json({ message: "Error en el servidor" });
   }
 };
-
-// Exportar funciones (CommonJS)
-module.exports = { createOrder, getUserOrders, updateOrderStatus };
+module.exports = { createOrder, getUserOrders, getAllOrders };
