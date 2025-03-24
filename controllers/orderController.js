@@ -38,18 +38,12 @@ const getUserOrders = async (req, res) => {
 // 🔹 Obtener todas las órdenes (solo admin)
 const getAllOrders = async (req, res) => {
   try {
-    console.log("📌 Usuario autenticado:", req.user); // ✅ Verifica si el usuario está autenticado
-
-    const orders = await Order.find().populate("user", "name email");
-
-    if (orders.length === 0) {
-      return res.status(404).json({ message: "No hay pedidos disponibles" });
-    }
-
-    res.status(200).json(orders);
+      const orders = await Order.find(); // Obtener todos los pedidos
+      res.status(200).json(orders);
   } catch (error) {
-    console.error("❌ Error al obtener pedidos:", error);
-    res.status(500).json({ message: "Error en el servidor" });
+      console.error("Error al obtener los pedidos:", error);
+      res.status(500).json({ message: "Error al obtener los pedidos" });
   }
 };
+
 module.exports = { createOrder, getUserOrders, getAllOrders };
