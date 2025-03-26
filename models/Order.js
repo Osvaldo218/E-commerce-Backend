@@ -34,14 +34,18 @@ const orderSchema = new mongoose.Schema(
       enum: ["Pendiente", "Pagado", "Cancelado"],
       default: "Pendiente",
     },
+    paymentIntentId: {
+      type: String, // Se almacena el ID de Stripe para verificar pagos
+      required: false,
+    },
+    paymentMethod: {
+      type: String,
+      required: false,
+    },
     orderStatus: {
       type: String,
       enum: ["Procesando", "Enviado", "Entregado", "Cancelado"],
       default: "Procesando",
-    },
-    createdAt: {
-      type: Date,
-      default: Date.now,
     },
   },
   { timestamps: true }

@@ -81,6 +81,39 @@ router.post("/", async (req, res) => {
   }
 });
 
+// ✅ Actualizar un producto
+router.put("/:id", protect, authorizeRoles("admin"), async (req, res) => {
+  try {
+    const { name, price, stock, category, description, image } = req.body;
+
+    if (!name || !price || stock === undefined) {
+      return res.status(400).json({ message: "Faltan datos obligatorios" });
+    }
+
+    const product = await Product.findById(req.params.id);
+
+    if (!product) {
+      return res.status(404).json({ message: "Producto no encontrado" });
+    }
+
+    // Actualizar los campos del producto
+    product.name = name;
+    product.price = price;
+    product.stock = stock;
+    product.category = category;
+    product.description = description;
+    product.image = image;
+
+    // Guardar el producto actualizado
+    await product.save();
+
+    res.json(product);
+  } catch (error) {
+    console.error("❌ Error al actualizar producto:", error);
+    res.status(500).json({ message: "Error en el servidor" });
+  }
+});
+
 // ✅ Eliminar un producto
 router.delete("/:id", async (req, res) => {
   try {

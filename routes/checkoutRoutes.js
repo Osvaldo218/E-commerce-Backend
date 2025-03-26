@@ -1,7 +1,7 @@
 const express = require("express");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const jwt = require("jsonwebtoken");
-const Cart = require("../models/Cart");
+const Order = require("../models/Order");
 
 const router = express.Router();
 
@@ -19,27 +19,37 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
-// Crear sesión de pago en Stripe
+// ✅ Ruta correcta para crear sesión de pago
 router.post("/create-session", authMiddleware, async (req, res) => {
-  const cart = await Cart.findOne({ userId: req.user.userId }).populate("items.productId");
-  if (!cart || cart.items.length === 0) return res.status(400).json({ error: "El carrito está vacío" });
+  try {
+    const { orderId } = req.body;
+    if (!orderId) return res.status(400).json({ error: "Falta el ID de la orden." });
 
-  const session = await stripe.checkout.sessions.create({
-    payment_method_types: ["card"],
-    line_items: cart.items.map((item) => ({
-      price_data: {
-        currency: "usd",
-        product_data: { name: item.productId.name },
-        unit_amount: item.productId.price * 100,
-      },
-      quantity: item.quantity,
-    })),
-    mode: "payment",
-    success_url: "http://localhost:5173/success",
-    cancel_url: "http://localhost:5173/cancel",
-  });
+    const order = await Order.findById(orderId).populate("orderItems.product");
+    if (!order) return res.status(404).json({ error: "Orden no encontrada" });
 
-  res.json({ sessionId: session.id });
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      line_items: order.orderItems.map((item) => ({
+        price_data: {
+          currency: "usd",
+          product_data: { name: item.product.name },
+          unit_amount: item.price * 100,
+        },
+        quantity: item.quantity,
+      })),
+      mode: "payment",
+      success_url: `http://localhost:5173/orders?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: "http://localhost:5173/cancel",
+      metadata: { orderId: order._id.toString() },
+    });
+
+    res.json({ sessionId: session.id });
+  } catch (error) {
+    console.error("Error al crear la sesión de pago:", error);
+    res.status(500).json({ error: "Error en el servidor" });
+  }
 });
 
+// Exportar el router correctamente
 module.exports = router;
