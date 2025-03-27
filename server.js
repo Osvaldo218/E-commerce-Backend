@@ -12,8 +12,13 @@ const userRoutes = require("./routes/userRoutes");
 
 dotenv.config();
 const app = express();
-
 app.use(cors());
+
+app.use(cors({
+  origin: process.env.FRONTEND_URL || "https://pointec-pfftdaiaq-osvaldos-projects-b567672d.vercel.app",
+  credentials: true,
+}));
+
 app.use(express.json());
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
@@ -37,4 +42,7 @@ app.use("/api/users", userRoutes);
 app.use("/api", chatbotRoutes);
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`✅ Backend corriendo en: http://localhost:${PORT}`);
+  console.log(`🌐 Conectado al frontend en: ${process.env.FRONTEND_URL}`);
+});
