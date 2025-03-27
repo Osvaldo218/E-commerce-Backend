@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: ecommerce-backend
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URI
+        value: mongodb://localhost:27017/pos_system
+      - key: STRIPE_SECRET_KEY
+        value: sk_test_51QzKH7ITGEX0lpDO4DA5imVVdcFhBLZsscJBwaBHOexSthYZ9YJCExQdEhq3Ych6E0S1m5GR6E9qkHaOsPGSiuUm00DmFVdhU8
+      - key: JWT_SECRET
+        value: 2136A
+    healthCheckPath: /health
+    autoDeploy: true
