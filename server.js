@@ -16,7 +16,6 @@ const app = express();
 // 🌐 Configuración de CORS mejorada
 const corsOptions = {
   origin: process.env.FRONTEND_URL || "https://pointec-murex.vercel.app",
-  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   credentials: true,
 };
 app.use(cors(corsOptions));
