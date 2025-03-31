@@ -42,7 +42,9 @@ app.use("/api/users", userRoutes);
 app.use("/api", chatbotRoutes);
 
 const PORT = process.env.PORT || 5000;
+const BACKEND_URL = process.env.BACKEND_URL || `http://localhost:${PORT}`;
+
 app.listen(PORT, () => {
-  console.log(`✅ Backend corriendo en: http://localhost:${PORT}`);
+  console.log(`✅ Backend corriendo en: ${BACKEND_URL}`);
   console.log(`🌐 Conectado al frontend en: ${process.env.FRONTEND_URL}`);
 });
