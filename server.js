@@ -12,12 +12,14 @@ const userRoutes = require("./routes/userRoutes");
 
 dotenv.config();
 const app = express();
-app.use(cors());
 
-app.use(cors({
-  origin: process.env.FRONTEND_URL || "https://pointec-pfftdaiaq-osvaldos-projects-b567672d.vercel.app",
+// 🌐 Configuración de CORS mejorada
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || "https://pointec-e7bbu4pf3-osvaldos-projects-b567672d.vercel.app",
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   credentials: true,
-}));
+};
+app.use(cors(corsOptions));
 
 app.use(express.json());
 
@@ -27,7 +29,7 @@ mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
-.then(() => console.log("MongoDB conectado"))
+.then(() => console.log("✅ MongoDB conectado"))
 .catch(err => console.log(err));
 
 app.use('/api/auth', authRoutes);
