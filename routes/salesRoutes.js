@@ -17,13 +17,13 @@ router.post("/", async (req, res) => {
   }
 });
 
-// Obtener ventas
+// Obtener todas las ventas
 router.get("/", async (req, res) => {
   try {
-      const sales = await Sale.find();
-      res.json(sales);
+    const sales = await Sale.find().populate("user", "name email");
+    res.json(sales);
   } catch (error) {
-      res.status(500).json({ message: "Error en el servidor" });
+    res.status(500).json({ message: "Error al obtener ventas" });
   }
 });
 

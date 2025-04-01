@@ -79,25 +79,11 @@ router.post("/forgot-password", async (req, res) => {
     const { email } = req.body;
     const user = await User.findOne({ email });
 
-    if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
+    if (!user) return res.status(404).json({ message: "Usuario no encontrado" }); // 🔥
 
-    // Crear token de restablecimiento
-    const token = crypto.randomBytes(20).toString("hex");
-    user.resetToken = token;
-    user.tokenExpiration = Date.now() + 3600000; // 1 hora de validez
-    await user.save();
-
-    // Enviar correo con enlace de recuperación
-    const resetUrl = `http://localhost:5173/reset-password/${token}`;
-    await transporter.sendMail({
-      to: user.email,
-      subject: "Recuperación de Contraseña",
-      html: `<p>Haz clic en el siguiente enlace para restablecer tu contraseña:</p>
-             <a href="${resetUrl}">${resetUrl}</a>`,
-    });
-
-    res.json({ message: "Correo de recuperación enviado" });
+    // Código para generar el token de recuperación...
   } catch (error) {
+    console.error("❌ Error en forgot-password:", error);
     res.status(500).json({ message: "Error en el servidor" });
   }
 });

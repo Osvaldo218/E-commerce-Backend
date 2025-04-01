@@ -11,14 +11,12 @@ const chatbotRoutes = require("./routes/chatbotRoutes");
 const userRoutes = require("./routes/userRoutes");
 
 dotenv.config();
-const app = express();
 
-// 🌐 Configuración de CORS mejorada
-const corsOptions = {
-  origin: process.env.FRONTEND_URL || "https://pointec-murex.vercel.app",
+const app = express();
+app.use(cors({
+  origin: ['http://localhost:5173', 'https://pointec-murex.vercel.app'], 
   credentials: true,
-};
-app.use(cors(corsOptions));
+}));
 
 app.use(express.json());
 

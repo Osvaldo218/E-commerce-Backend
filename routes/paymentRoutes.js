@@ -1,30 +1,43 @@
 const express = require("express");
 const router = express.Router();
-const Payment = require("../models/Payment");
-const sendEmail = require("../utils/sendEmail");
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const Sale = require("../models/Sale");
 
-router.post("/save-payment", async (req, res) => {
-    try {
-        const { userId, email, amount, paymentMethod, status } = req.body;
-        const newPayment = new Payment({ userId, amount, paymentMethod, status });
-        await newPayment.save();
-
-        // Enviar correo de confirmación
-        await sendEmail(email, "Confirmación de pago", `Tu pago de $${amount} fue exitoso.`);
-
-        res.json({ message: "Pago guardado y correo enviado" });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-router.get("/history/:userId", async (req, res) => {
+// Confirmar pago en Stripe
+router.post("/confirm-payment", async (req, res) => {
   try {
-      const payments = await Payment.find({ userId: req.params.userId });
-      res.json(payments);
+    const { sessionId } = req.body;
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+    if (session.payment_status === "paid") {
+      res.json({
+        success: true,
+        userId: session.customer_email,
+        products: session.metadata.products,
+        amount: session.amount_total / 100,
+      });
+    } else {
+      res.json({ success: false });
+    }
   } catch (error) {
-      res.status(500).json({ error: error.message });
+    console.error("Error al confirmar pago:", error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
+
+// Guardar la venta después del pago
+router.post("/sales/create", async (req, res) => {
+  try {
+    const { userId, products, totalAmount, status } = req.body;
+    const sale = new Sale({ userId, products, totalAmount, status });
+    await sale.save();
+    res.json({ success: true, message: "Venta registrada con éxito." });
+  } catch (error) {
+    console.error("Error al guardar la venta:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+console.log("Clave secreta de Stripe:", process.env.STRIPE_SECRET_KEY ? "Cargada correctamente" : "No encontrada");
 
 module.exports = router;
