@@ -47,6 +47,7 @@ const faq = [
     { question: "como contacto con soporte", answer: "Puedes contactarnos por chat en vivo o al correo soporte@pointec.com." },
     { question: "tienen atencion telefonica", answer: "Sí, puedes llamarnos al +123 456 7890 en horario laboral." },
     { question: "puedo cancelar un pedido", answer: "Sí, puedes cancelar un pedido antes de que sea enviado. Visita 'Mis Pedidos' para hacerlo." },
+    { question: "como creo un usuario", answer: "Haz clic en 'Pointec' en la parte superior de la página, posteriormente haz click en 'Regístrate' y completa el formulario con tu nombre, correo y contraseña." },
 
     // 🤖 INTERACCIÓN GENERAL
     { question: "que eres", answer: "Soy PointBot, una IA diseñada para ayudarte con tus dudas sobre nuestra tienda." },
