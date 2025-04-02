@@ -45,7 +45,8 @@ const faq = [
         { question: "cuanto tarda un reembolso", answer: "Los reembolsos pueden tardar entre 5 y 10 días hábiles en procesarse." },
     
         // 👤 CUENTAS Y SEGURIDAD
-        { question: "como creo una cuenta", answer: "Haz clic en 'Pointec', despues haz click en 'Regítrate' y completa el formulario con tu información." },
+        { question: "como creo una cuenta", answer: "Haz clic en 'Pointec', despues haz click en 'Regístrate' y completa el formulario con tu información." },
+        { question: "como creo un usuario", answer: "Haz clic en 'Pointec', despues haz click en 'Regístrate' y completa el formulario con tu información." },
         { question: "olvide mi contraseña", answer: "Puedes restablecer tu contraseña en la página de inicio de sesión, haciendo clic en '¿Olvidaste tu contraseña?'." },
         { question: "como cambio mi direccion de correo", answer: "Puedes actualizar tu correo en la configuración de tu cuenta." },
         { question: "es seguro comprar en su sitio", answer: "Sí, usamos cifrado SSL y métodos de pago seguros como Stripe y PayPal." },
