@@ -45,3 +45,7 @@ app.listen(PORT, () => {
   console.log(`✅ Backend corriendo en: ${BACKEND_URL}`);
   console.log(`🌐 Conectado al frontend en: ${process.env.FRONTEND_URL}`);
 });
+
+app.get('/health', (req, res) => {
+  res.status(200).json({ message: "Server is healthy" });
+});
