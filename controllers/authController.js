@@ -1,47 +1,173 @@
-const crypto = require("crypto");
-const User = require("../models/User");
-const sendEmail = require("../utils/sendEmail");
+const User = require('../models/User');
+const crypto = require('crypto');
+const sendEmail = require('../utils/sendEmail');
+const validator = require('validator');
 
+// Configuración
+const RESET_TOKEN_EXPIRATION = 3600000; // 1 hora en ms
+const FRONTEND_RESET_URL = process.env.FRONTEND_RESET_URL || 'https://pointec-murex.vercel.app/reset-password';
+
+// @desc    Forgot password
+// @route   POST /api/auth/forgot-password
+// @access  Public
 exports.forgotPassword = async (req, res) => {
-  const { email } = req.body;
-  console.log("📩 Correo recibido en el backend:", email); // 🔍 Verifica qué se recibe
-
   try {
-    const user = await User.findOne({ email });
-    if (!user) {
-      console.log("❌ Usuario no encontrado en la BD"); // 🔍 Verifica si realmente existe
-      return res.status(404).json({ message: "No se encontró una cuenta con ese correo" });
+    // Validar CORS primero
+    res.header('Access-Control-Allow-Origin', process.env.ALLOWED_ORIGINS || '*');
+    res.header('Access-Control-Allow-Methods', 'POST');
+    
+    const { email } = req.body;
+
+    // Validación robusta del email
+    if (!email || !validator.isEmail(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Por favor proporciona un email válido'
+      });
     }
 
-    // 🔹 Generar token de recuperación
-    const resetToken = crypto.randomBytes(32).toString("hex");
-    user.resetPasswordToken = crypto.createHash("sha256").update(resetToken).digest("hex");
-    user.resetPasswordExpire = Date.now() + 15 * 60 * 1000; // Token válido por 15 minutos
-    await user.save();
+    // Buscar usuario sin revelar si existe o no
+    const user = await User.findOne({ email });
+    if (!user) {
+      // Por seguridad, damos la misma respuesta
+      return res.status(200).json({
+        success: true,
+        message: 'Si este email existe en nuestro sistema, recibirás un correo con instrucciones'
+      });
+    }
 
-    // 🔹 Crear enlace de recuperación
-    const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+    // Generar token seguro
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetPasswordToken = crypto
+      .createHash('sha256')
+      .update(resetToken)
+      .digest('hex');
 
-    // 🔹 Contenido del correo
-    const htmlMessage = `
-      <h2>Recuperación de Contraseña</h2>
-      <p>Haz clic en el siguiente enlace para restablecer tu contraseña:</p>
-      <a href="${resetUrl}" style="background: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Restablecer Contraseña</a>
-      <p>Si no solicitaste esto, ignora este mensaje.</p>
+    // Guardar token con expiración
+    user.resetPasswordToken = resetPasswordToken;
+    user.resetPasswordExpire = Date.now() + RESET_TOKEN_EXPIRATION;
+    await user.save({ validateBeforeSave: false });
+
+    // Crear URL segura para el frontend
+    const resetUrl = `${FRONTEND_RESET_URL}?token=${resetToken}`;
+
+    // Plantilla de email más profesional
+    const message = `
+      <h2>Solicitud de restablecimiento de contraseña</h2>
+      <p>Hemos recibido una solicitud para restablecer la contraseña de tu cuenta.</p>
+      <p>Por favor haz clic en el siguiente enlace para continuar:</p>
+      <a href="${resetUrl}" target="_blank">Restablecer contraseña</a>
+      <p>Este enlace expirará en 1 hora.</p>
+      <p>Si no solicitaste este cambio, por favor ignora este mensaje.</p>
     `;
 
-    // 🔹 Enviar correo de recuperación
-    await sendEmail({
-      email: user.email,
-      subject: "🔑 Recuperación de contraseña",
-      message: `Haz clic en el siguiente enlace: ${resetUrl}`,
-      htmlMessage
-    });
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: 'Instrucciones para restablecer tu contraseña',
+        html: message // Usamos HTML en lugar de texto plano
+      });
 
-    res.json({ message: "Correo enviado con instrucciones para restablecer la contraseña" });
+      return res.status(200).json({
+        success: true,
+        message: 'Si este email existe en nuestro sistema, recibirás un correo con instrucciones'
+      });
+
+    } catch (error) {
+      // Revertir cambios si falla el email
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpire = undefined;
+      await user.save({ validateBeforeSave: false });
+
+      console.error('Error enviando email:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Ocurrió un error al enviar el email. Por favor intenta nuevamente.'
+      });
+    }
 
   } catch (error) {
-    console.error("❌ Error en forgotPassword:", error);
-    res.status(500).json({ message: "Error en el servidor" });
+    console.error('Error en forgotPassword:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Ocurrió un error inesperado. Por favor intenta más tarde.'
+    });
+  }
+};
+
+// @desc    Reset password
+// @route   PUT /api/auth/reset-password/:resetToken
+// @access  Public
+exports.resetPassword = async (req, res) => {
+  try {
+    const { password } = req.body;
+    const { resetToken } = req.params;
+
+    // Validar CORS
+    res.header('Access-Control-Allow-Origin', process.env.ALLOWED_ORIGINS || '*');
+    res.header('Access-Control-Allow-Methods', 'PUT');
+
+    // Validar contraseña (deberías usar un validador más robusto)
+    if (!password || password.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: 'La contraseña debe tener al menos 8 caracteres'
+      });
+    }
+
+    // Hash el token para comparar
+    const resetPasswordToken = crypto
+      .createHash('sha256')
+      .update(resetToken)
+      .digest('hex');
+
+    // Buscar usuario con token válido y no expirado
+    const user = await User.findOne({
+      resetPasswordToken,
+      resetPasswordExpire: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: 'El token es inválido o ha expirado. Por favor solicita un nuevo enlace.'
+      });
+    }
+
+    // Actualizar contraseña y limpiar token
+    user.password = password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    
+    // Forzar validación al guardar
+    await user.save();
+
+    // Opcional: Enviar email de confirmación
+    await sendEmail({
+      email: user.email,
+      subject: 'Tu contraseña ha sido actualizada',
+      html: `<p>La contraseña de tu cuenta ha sido actualizada exitosamente.</p>`
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Contraseña actualizada exitosamente. Ahora puedes iniciar sesión con tu nueva contraseña.'
+    });
+
+  } catch (error) {
+    console.error('Error en resetPassword:', error);
+    
+    // Manejar errores de validación de Mongoose
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({
+        success: false,
+        message: 'La contraseña no cumple con los requisitos mínimos'
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: 'Ocurrió un error al actualizar la contraseña. Por favor intenta nuevamente.'
+    });
   }
 };

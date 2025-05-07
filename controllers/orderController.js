@@ -1,8 +1,5 @@
-// orderController.js
-
 const Order = require("../models/Order");
 
-// Crear una orden
 const createOrder = async (req, res) => {
   try {
     const { items, totalAmount } = req.body; // Datos esperados en la solicitud
@@ -29,11 +26,10 @@ const createOrder = async (req, res) => {
 // Obtener órdenes del usuario
 const getUserOrders = async (req, res) => {
   try {
-    const orders = await Order.find({ user: req.user._id });
-    res.status(200).json(orders); // Devolver las órdenes del usuario
+    const orders = await Order.find({ userId: req.params.userId });
+    res.json(orders);
   } catch (error) {
-    console.error("❌ Error al obtener órdenes del usuario:", error);
-    res.status(500).json({ message: "Error al obtener las órdenes del usuario" });
+    res.status(500).json({ error: "Error al obtener las órdenes" });
   }
 };
 

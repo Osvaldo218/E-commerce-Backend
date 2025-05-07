@@ -8,6 +8,7 @@ exports.getSalesStats = async (req, res) => {
           _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } }, // Agrupar por mes
           totalSales: { $sum: "$totalAmount" },
           totalOrders: { $sum: 1 },
+          deliveryDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000)
         },
       },
       { $sort: { _id: 1 } }, // Ordenar cronológicamente

@@ -1,30 +1,27 @@
-const nodemailer = require("nodemailer");
+const nodemailer = require('nodemailer');
 
-const sendEmail = async ({ email, subject, message, htmlMessage }) => {
-  try {
-    const transporter = nodemailer.createTransport({
-      service: "Gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
+const sendEmail = async (options) => {
+  // 1. Crear transporter
+  const transporter = nodemailer.createTransport({
+    host: process.env.EMAIL_HOST,
+    port: process.env.EMAIL_PORT,
+    auth: {
+      user: process.env.EMAIL_USERNAME,
+      pass: process.env.EMAIL_PASSWORD
+    }
+  });
 
-    const mailOptions = {
-      from: `"Pointec Soporte" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject,
-      text: message,
-      html: htmlMessage || `<p>${message}</p>` // Permite enviar HTML si se proporciona
-    };
+  // 2. Definir opciones del email
+  const mailOptions = {
+    from: 'Tu E-commerce <noreply@tuecommerce.com>',
+    to: options.email,
+    subject: options.subject,
+    text: options.message
+    // html: options.html (opcional para emails con formato)
+  };
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`✅ Correo enviado: ${info.response}`);
-
-  } catch (error) {
-    console.error("❌ Error al enviar email:", error);
-    throw new Error("No se pudo enviar el correo.");
-  }
+  // 3. Enviar email
+  await transporter.sendMail(mailOptions);
 };
 
 module.exports = sendEmail;
