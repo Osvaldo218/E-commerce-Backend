@@ -7,49 +7,49 @@ const orderSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    orderItems: [
+    items: [
       {
-        product: {
-          type: mongoose.Schema.Types.ObjectId,
+        productId: {
+          type: mongoose.Schema.Types.ObjectId, // Mejor usar ObjectId si existe modelo Product
           ref: "Product",
           required: true,
         },
-        quantity: {
-          type: Number,
+        name: {
+          type: String,
           required: true,
-          default: 1,
+          trim: true,
         },
         price: {
           type: Number,
           required: true,
+          min: 0,
+        },
+        quantity: {
+          type: Number,
+          required: true,
+          min: 1,
         },
       },
     ],
-    totalPrice: {
+    totalAmount: {
       type: Number,
       required: true,
+      min: 0,
     },
-    paymentStatus: {
+    paymentMethodId: {
       type: String,
-      enum: ["Pendiente", "Pagado", "Cancelado"],
-      default: "Pendiente",
+      default: null,
+      trim: true,
     },
-    paymentIntentId: {
-      type: String, // Se almacena el ID de Stripe para verificar pagos
-      required: false,
-    },
-    paymentMethod: {
+    status: {
       type: String,
-      required: false,
-    },
-    orderStatus: {
-      type: String,
-      enum: ["Procesando", "Enviado", "Entregado", "Cancelado"],
-      default: "Procesando",
+      enum: ["pending", "paid", "shipped", "delivered", "cancelled"],
+      default: "pending",
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
-const Order = mongoose.model("Order", orderSchema);
-module.exports = Order;
+module.exports = mongoose.model("Order", orderSchema);

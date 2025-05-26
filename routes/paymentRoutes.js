@@ -1,14 +1,24 @@
-const express = require('express');
+// server/routes/payment.js
+const express = require("express");
 const router = express.Router();
-const {
-  createPaymentIntent,
-  handleWebhook
-} = require('../controllers/paymentController');
+const stripe = require("../stripe");
 
-// Ruta para crear intención de pago
-router.post('/create-payment-intent', createPaymentIntent);
+router.post("/create-payment-intent", async (req, res) => {
+  const { amount } = req.body;
 
-// Ruta para webhook de Stripe (necesita formato raw)
-router.post('/webhook', express.raw({ type: 'application/json' }), handleWebhook);
+  try {
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount,
+      currency: "mxn",
+    });
+
+    res.send({
+      clientSecret: paymentIntent.client_secret,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ error: "Error al crear pago" });
+  }
+});
 
 module.exports = router;

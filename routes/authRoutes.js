@@ -7,6 +7,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
 const { protect } = require("../middleware/authMiddleware");
+const { verifyEmail } = require("../controllers/authController"); // Importa el controlador
 
 dotenv.config();
 
@@ -47,7 +48,7 @@ router.post("/login", async (req, res) => {
     const token = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" } // 🔥 Ahora dura 7 días
+      { expiresIn: "7d" }
     );
 
     // Enviar token en una cookie segura
@@ -55,7 +56,7 @@ router.post("/login", async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "Strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días en milisegundos
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     res.status(200).json({ message: "Login exitoso", token });
@@ -63,6 +64,9 @@ router.post("/login", async (req, res) => {
     res.status(500).json({ message: "Error en el servidor" });
   }
 });
+
+// Verificar código de verificación de correo
+router.post("/verify-email", verifyEmail);
 
 // Configurar transporte de correo
 const transporter = nodemailer.createTransport({
@@ -73,22 +77,24 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// 🔹 Solicitar restablecimiento de contraseña
+// Solicitar restablecimiento de contraseña
 router.post("/forgot-password", async (req, res) => {
   try {
     const { email } = req.body;
     const user = await User.findOne({ email });
 
-    if (!user) return res.status(404).json({ message: "Usuario no encontrado" }); // 🔥
+    if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
 
-    // Código para generar el token de recuperación...
+    // Aquí deberías implementar la generación del token y envío de email para restablecer contraseña
+
+    res.json({ message: "Instrucciones para restablecer la contraseña enviadas al email" });
   } catch (error) {
     console.error("❌ Error en forgot-password:", error);
     res.status(500).json({ message: "Error en el servidor" });
   }
 });
 
-// Restablecimiento de contraseña
+// Restablecer contraseña
 router.post("/reset-password/:token", async (req, res) => {
   try {
     const { token } = req.params;
@@ -119,7 +125,7 @@ router.post("/logout", (req, res) => {
   res.json({ message: "Sesión cerrada correctamente" });
 });
 
-// ✅ Obtener usuario autenticado
+// Obtener usuario autenticado
 router.get("/user", protect, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");

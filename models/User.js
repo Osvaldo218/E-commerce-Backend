@@ -8,6 +8,12 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   role: { type: String, enum: ["admin", "vendedor", "cliente"], default: "cliente" },
   verified: { type: Boolean, default: false },
+
+  // 📩 Verificación de correo electrónico
+  verificationCode: { type: String }, // Código OTP
+  verificationExpires: { type: Date }, // Expira en 10 minutos
+
+  // 🔐 Recuperación de contraseña
   resetPasswordToken: String,
   resetPasswordExpire: Date
 }, { timestamps: true });
@@ -30,7 +36,7 @@ UserSchema.methods.generateResetToken = function () {
   const resetToken = crypto.randomBytes(20).toString("hex");
 
   this.resetPasswordToken = crypto.createHash("sha256").update(resetToken).digest("hex");
-  this.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // Token válido por 10 minutos
+  this.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 minutos
 
   return resetToken;
 };

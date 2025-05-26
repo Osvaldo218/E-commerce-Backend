@@ -1,16 +1,9 @@
 const express = require("express");
-const { createOrder, getUserOrders, getAllOrders } = require("../controllers/orderController");
-const { protect, authorizeRoles } = require("../middleware/authMiddleware");
-
 const router = express.Router();
+const { protect } = require("../middleware/authMiddleware");
+const upload = require("../middleware/upload");
+const { createTransferOrder } = require("../controllers/orderController");
 
-// 🔹 Crear una orden (usuario autenticado)
-router.post("/", protect, createOrder); 
-
-// 🔹 Obtener órdenes del usuario autenticado
-router.get("/", protect, getUserOrders); 
-
-// 🔹 Obtener todas las órdenes (solo admin)
-router.get("/all", protect, authorizeRoles("admin"), getAllOrders); 
+router.post("/transfer", protect, upload.single("proof"), createTransferOrder);
 
 module.exports = router;
