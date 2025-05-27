@@ -1,41 +1,54 @@
 const Order = require("../models/Order");
 
+// Crear orden por transferencia
 const createTransferOrder = async (req, res) => {
   try {
-    const { items, totalAmount } = req.body;
+    console.log("Usuario del token:", req.user);
 
-    // Los items llegan como JSON string desde formData, parsear si es string
-    let parsedItems = items;
-    if (typeof items === "string") {
-      parsedItems = JSON.parse(items);
+    const { items, totalAmount, paymentMethodId } = req.body;
+
+    // Validaciones
+    if (!items || !items.length || !totalAmount) {
+      return res
+        .status(400)
+        .json({ message: "Datos incompletos para crear la orden." });
     }
 
-    if (!parsedItems || !Array.isArray(parsedItems) || parsedItems.length === 0) {
-      return res.status(400).json({ message: "No se enviaron productos." });
-    }
-
-    if (!totalAmount || totalAmount <= 0) {
-      return res.status(400).json({ message: "Monto total inválido." });
-    }
-
-    const proof = req.file?.filename || null;
-
+    // Crear la orden
     const newOrder = new Order({
       user: req.user._id,
-      items: parsedItems,
+      name: `Orden de ${req.user.name}`,
+      items,
       totalAmount,
-      paymentMethod: "transferencia",
+      paymentMethodId: paymentMethodId || null,
       status: "pendiente",
-      proofOfTransfer: proof,
     });
 
     await newOrder.save();
 
-    res.status(201).json({ message: "Orden registrada correctamente", order: newOrder });
+    res.status(201).json({
+      success: true,
+      message: "Orden registrada correctamente",
+      order: newOrder,
+    });
   } catch (error) {
     console.error("❌ Error al crear orden por transferencia:", error);
     res.status(500).json({ message: "Error al procesar la orden." });
   }
 };
 
-module.exports = { createTransferOrder };
+// Obtener todas las órdenes del usuario autenticado
+const getOrders = async (req, res) => {
+  try {
+    const orders = await Order.find({ user: req.user.id }).populate("items.product");
+    res.json(orders);
+  } catch (err) {
+    console.error("Error al obtener pedidos:", err);
+    res.status(500).json({ message: "Error del servidor" });
+  }
+};
+
+module.exports = {
+  createTransferOrder,
+  getOrders,
+};

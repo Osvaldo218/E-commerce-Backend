@@ -8,6 +8,46 @@ const validator = require('validator');
 const RESET_TOKEN_EXPIRATION = 3600000; // 1 hora
 const FRONTEND_RESET_URL = process.env.FRONTEND_RESET_URL || 'https://pointec-murex.vercel.app/reset-password';
 
+exports.loginUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ message: "Correo y contraseña son obligatorios" });
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.status(401).json({ message: "Credenciales inválidas" });
+    }
+
+    if (!user.verified) {
+      return res.status(403).json({ message: "Verifica tu correo antes de iniciar sesión" });
+    }
+
+    const token = jwt.sign(
+      { _id: user._id, name: user.name, email: user.email },
+      JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    res.status(200).json({
+      message: "Inicio de sesión exitoso",
+      token,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+      }
+    });
+
+  } catch (error) {
+    console.error("❌ Error al iniciar sesión:", error);
+    res.status(500).json({ message: "Error en el servidor" });
+  }
+};
+
 // ✅ Registrar nuevo usuario y enviar código de verificación
 exports.registerUser = async (req, res) => {
   try {
