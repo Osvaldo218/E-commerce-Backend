@@ -1,25 +1,24 @@
 const multer = require("multer");
+const fs = require("fs");
 const path = require("path");
 
+// Crear carpeta si no existe
+const transferPath = path.join(__dirname, "../uploads/transfers");
+if (!fs.existsSync(transferPath)) {
+  fs.mkdirSync(transferPath, { recursive: true });
+}
+
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/transfers/");
+  destination: function (req, file, cb) {
+    cb(null, transferPath);
   },
-  filename: (req, file, cb) => {
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
     const ext = path.extname(file.originalname);
-    cb(null, `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`);
+    cb(null, uniqueSuffix + ext);
   },
 });
 
-const fileFilter = (req, file, cb) => {
-  const allowedTypes = ["image/png", "image/jpeg", "image/jpg", "application/pdf"];
-  if (allowedTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error("Formato de archivo no permitido"), false);
-  }
-};
-
-const upload = multer({ storage, fileFilter });
+const upload = multer({ storage });
 
 module.exports = upload;

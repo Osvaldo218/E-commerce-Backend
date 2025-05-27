@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const path = require('path');
 
 const authRoutes = require('./routes/authRoutes');
 const productRoutes = require('./routes/productRoutes');
@@ -37,6 +38,7 @@ app.use("/api/checkout", require("./routes/checkoutRoutes"));
 app.use("/api/cart", require("./routes/cartRoutes"));
 app.use("/api/sales", require("./routes/salesRoutes"));
 app.use("/api/favorites", favoritesRoutes);
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/users", userRoutes);
 app.use("/api", chatbotRoutes);
 

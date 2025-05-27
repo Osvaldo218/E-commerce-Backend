@@ -1,11 +1,16 @@
-// controllers/orderController.js
 const Order = require("../models/Order");
 
 const createTransferOrder = async (req, res) => {
   try {
     const { items, totalAmount } = req.body;
 
-    if (!items || !Array.isArray(items) || items.length === 0) {
+    // Los items llegan como JSON string desde formData, parsear si es string
+    let parsedItems = items;
+    if (typeof items === "string") {
+      parsedItems = JSON.parse(items);
+    }
+
+    if (!parsedItems || !Array.isArray(parsedItems) || parsedItems.length === 0) {
       return res.status(400).json({ message: "No se enviaron productos." });
     }
 
@@ -13,15 +18,15 @@ const createTransferOrder = async (req, res) => {
       return res.status(400).json({ message: "Monto total inválido." });
     }
 
-    const proof = req.file?.filename;
+    const proof = req.file?.filename || null;
 
     const newOrder = new Order({
       user: req.user._id,
-      items,
+      items: parsedItems,
       totalAmount,
       paymentMethod: "transferencia",
       status: "pendiente",
-      proofOfTransfer: proof || null,
+      proofOfTransfer: proof,
     });
 
     await newOrder.save();
