@@ -9,7 +9,7 @@ const paymentRoutes = require('./routes/paymentRoutes');
 const orderRoutes = require("./routes/orderRoutes");
 const chatbotRoutes = require("./routes/chatbotRoutes");
 const userRoutes = require("./routes/userRoutes");
-const favoritesRoutes = require("./routes/favorites");
+const favoritesRoutes = require("./routes/favoritesRoutes");
 
 dotenv.config();
 
