@@ -1,9 +1,9 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
+const { createTransferOrder, getOrders } = require("../controllers/orderController");
+const verifyToken = require("../middleware/verifyToken");
 
-const { createTransferOrder, getOrders } = require('../controllers/orderController');
-
-router.post('/transfer', createTransferOrder);
-router.get('/', getOrders);
+router.post("/transfer", verifyToken, createTransferOrder);
+router.get("/", verifyToken, getOrders);
 
 module.exports = router;
