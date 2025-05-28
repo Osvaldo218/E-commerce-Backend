@@ -1,21 +1,14 @@
 const multer = require("multer");
-const fs = require("fs");
 const path = require("path");
 
-// Crear carpeta si no existe
-const transferPath = path.join(__dirname, "../uploads/transfers");
-if (!fs.existsSync(transferPath)) {
-  fs.mkdirSync(transferPath, { recursive: true });
-}
-
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, transferPath);
+  destination: (req, file, cb) => {
+    cb(null, "uploads/"); // o tu carpeta de comprobantes
   },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+  filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);
-    cb(null, uniqueSuffix + ext);
+    const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
+    cb(null, uniqueName);
   },
 });
 
