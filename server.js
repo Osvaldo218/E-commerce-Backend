@@ -15,9 +15,19 @@ const favoritesRoutes = require("./routes/favoritesRoutes");
 dotenv.config();
 
 const app = express();
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://pointec-murex.vercel.app',
+];
+
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://pointec-murex.vercel.app'],
-  methods: 'GET, POST, PUT, DELETE',
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('❌ No permitido por CORS'));
+    }
+  },
   credentials: true,
 }));
 

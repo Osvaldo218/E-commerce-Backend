@@ -1,9 +1,18 @@
 const express = require("express");
 const router = express.Router();
-const { createTransferOrder, getOrders } = require("../controllers/orderController");
-const verifyToken = require("../middleware/verifyToken");
+const multer = require("multer");
+const path = require("path");
+const { createTransferOrder } = require("../controllers/orderController");
+const { protect } = require("../middleware/authMiddleware");
 
-router.post("/transfer", verifyToken, createTransferOrder);
-router.get("/", verifyToken, getOrders);
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, "uploads/"),
+  filename: (req, file, cb) =>
+    cb(null, Date.now() + path.extname(file.originalname)),
+});
+
+const upload = multer({ storage });
+
+router.post("/transfer", protect, upload.single("proof"), createTransferOrder);
 
 module.exports = router;
