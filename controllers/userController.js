@@ -1,6 +1,5 @@
 const User = require("../models/User.js");
 
-// 📌 Obtener el perfil del usuario
 const getUserProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
@@ -14,7 +13,6 @@ const getUserProfile = async (req, res) => {
   }
 };
 
-// 📌 Obtener todos los usuarios (Solo Admin)
 const getAllUsers = async (req, res) => {
   try {
     const users = await User.find().select("-password");

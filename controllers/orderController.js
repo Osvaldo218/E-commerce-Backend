@@ -1,54 +1,52 @@
+const Stripe = require("stripe");
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const Order = require("../models/Order");
 
-// Crear orden por transferencia
-const createTransferOrder = async (req, res) => {
+// Crear orden y pago con Stripe
+const createStripeOrder = async (req, res) => {
   try {
-    console.log("Usuario del token:", req.user);
-
     const { items, totalAmount, paymentMethodId } = req.body;
 
-    // Validaciones
-    if (!items || !items.length || !totalAmount) {
-      return res
-        .status(400)
-        .json({ message: "Datos incompletos para crear la orden." });
+    if (!items || !items.length || !totalAmount || !paymentMethodId) {
+      return res.status(400).json({ message: "Datos incompletos para crear la orden." });
     }
 
-    // Crear la orden
+    // Crea un pago con Stripe
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(totalAmount * 100), // en centavos
+      currency: "mxn", // o la moneda que uses
+      payment_method: paymentMethodId,
+      confirm: true, // confirma el pago inmediatamente
+    });
+
+    if (paymentIntent.status !== "succeeded") {
+      return res.status(400).json({ message: "Pago no realizado." });
+    }
+
+    // Crea la orden en la base de datos
     const newOrder = new Order({
       user: req.user._id,
       name: `Orden de ${req.user.name}`,
       items,
       totalAmount,
-      paymentMethodId: paymentMethodId || null,
-      status: "pendiente",
+      paymentMethodId,
+      status: "pagado",
     });
 
     await newOrder.save();
 
     res.status(201).json({
       success: true,
-      message: "Orden registrada correctamente",
+      message: "Orden y pago registrados correctamente",
       order: newOrder,
+      paymentIntent,
     });
   } catch (error) {
-    console.error("❌ Error al crear orden por transferencia:", error);
-    res.status(500).json({ message: "Error al procesar la orden." });
-  }
-};
-
-// Obtener todas las órdenes del usuario autenticado
-const getOrders = async (req, res) => {
-  try {
-    const orders = await Order.find({ user: req.user.id }).populate("items.product");
-    res.json(orders);
-  } catch (err) {
-    console.error("Error al obtener pedidos:", err);
-    res.status(500).json({ message: "Error del servidor" });
+    console.error("❌ Error al crear orden con Stripe:", error);
+    res.status(500).json({ message: "Error al procesar el pago." });
   }
 };
 
 module.exports = {
-  createTransferOrder,
-  getOrders,
+  createStripeOrder,
 };

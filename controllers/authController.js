@@ -5,7 +5,7 @@ const verifyEmail = require('../utils/verifyEmail')
 const validator = require('validator');
 
 // Configuración
-const RESET_TOKEN_EXPIRATION = 3600000; // 1 hora
+const RESET_TOKEN_EXPIRATION = 3600000;
 const FRONTEND_RESET_URL = process.env.FRONTEND_RESET_URL || 'https://pointec-murex.vercel.app/reset-password';
 
 exports.loginUser = async (req, res) => {

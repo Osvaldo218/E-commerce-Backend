@@ -32,26 +32,22 @@ router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Buscar usuario por email
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: "Usuario no encontrado" });
     }
 
-    // Comparar contraseña encriptada
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Contraseña incorrecta" });
     }
 
-    // Crear token JWT con duración de 7 días
     const token = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 
-    // Enviar token en una cookie segura
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -65,10 +61,8 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// Verificar código de verificación de correo
 router.post("/verify-email", verifyEmail);
 
-// Configurar transporte de correo
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -77,15 +71,12 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// Solicitar restablecimiento de contraseña
 router.post("/forgot-password", async (req, res) => {
   try {
     const { email } = req.body;
     const user = await User.findOne({ email });
 
     if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
-
-    // Aquí deberías implementar la generación del token y envío de email para restablecer contraseña
 
     res.json({ message: "Instrucciones para restablecer la contraseña enviadas al email" });
   } catch (error) {
@@ -94,7 +85,6 @@ router.post("/forgot-password", async (req, res) => {
   }
 });
 
-// Restablecer contraseña
 router.post("/reset-password/:token", async (req, res) => {
   try {
     const { token } = req.params;
@@ -125,7 +115,6 @@ router.post("/logout", (req, res) => {
   res.json({ message: "Sesión cerrada correctamente" });
 });
 
-// Obtener usuario autenticado
 router.get("/user", protect, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
