@@ -12,11 +12,12 @@ router.post("/stripe", async (req, res) => {
       currency: "mxn",
       payment_method: paymentMethodId,
       confirm: true,
+      return_url: "https://pointec-murex.vercel.app/admin/orders"
     });
 
     res.json({ message: "Pago procesado", paymentIntentId: paymentIntent.id });
   } catch (error) {
-    console.error(error);
+    console.error("❌ Stripe error:", error);
     res.status(400).json({ message: error.message });
   }
 });
