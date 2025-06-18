@@ -1,35 +1,23 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
-// Middleware para proteger rutas con JWT
 const protect = async (req, res, next) => {
-  try {
-    const token = req.headers.authorization?.split(" ")[1];
+  let token;
 
-    if (!token) {
-      console.error("❌ No se envió token");
-      return res.status(401).json({ message: "No autorizado. Token requerido." });
+  // Leer token de cabecera Authorization o cookies si lo usas así
+  if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+    try {
+      token = req.headers.authorization.split(" ")[1];
+
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+      req.user = await User.findById(decoded.id).select("-password"); // excluye la contraseña
+      next();
+    } catch (error) {
+      return res.status(401).json({ message: "Token inválido o expirado" });
     }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    // Obtener el usuario sin incluir su contraseña
-    req.user = await User.findById(decoded.id).select("-password");
-
-    if (!req.user) {
-      console.error("❌ Usuario no encontrado en la base de datos.");
-      return res.status(404).json({ message: "Usuario no encontrado." });
-    }
-
-    next(); // Continúa hacia el controlador
-  } catch (error) {
-    console.error("❌ Error en autenticación:", error);
-
-    if (error.name === "TokenExpiredError") {
-      return res.status(401).json({ message: "Token expirado. Inicia sesión nuevamente." });
-    }
-
-    return res.status(401).json({ message: "Token no válido o expirado." });
+  } else {
+    return res.status(401).json({ message: "No autorizado, token faltante" });
   }
 };
 
@@ -45,4 +33,17 @@ const authorizeRoles = (...roles) => {
   };
 };
 
-module.exports = { protect, authorizeRoles };
+const authMiddleware = async (req, res, next) => {
+  const token = req.headers.authorization?.split(" ")[1];
+  if (!token) return res.status(401).json({ message: "No autorizado" });
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = await User.findById(decoded.id).select("-password");
+    next();
+  } catch (error) {
+    res.status(401).json({ message: "Token inválido" });
+  }
+};
+
+module.exports = { protect, authorizeRoles, authMiddleware };

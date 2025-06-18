@@ -127,4 +127,8 @@ router.get("/user", protect, async (req, res) => {
   }
 });
 
+router.get("/me", protect, (req, res) => {
+  res.status(200).json({ user: req.user });
+});
+
 module.exports = router;

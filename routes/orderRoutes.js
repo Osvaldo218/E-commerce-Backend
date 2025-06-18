@@ -1,18 +1,24 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { protect } = require('../middleware/authMiddleware');
-const Order = require('../models/Order');
+const { protect, authMiddleware, authorizeRoles } = require("../middleware/authMiddleware");
+const {
+  createStripeOrder,
+  getAllOrders,
+  getUserOrders,
+  updateOrderStatus,
+} = require("../controllers/orderController");
 
-router.get('/', protect, async (req, res) => {
-  try {
-    console.log('📥 Usuario en GET orders:', req.user._id);
-    const orders = await Order.find({ user: req.user._id }).sort({ createdAt: -1 });
-    console.log('📦 Pedidos encontrados:', orders);
-    res.json(orders);
-  } catch (error) {
-    console.error('❌ Error al obtener órdenes:', error);
-    res.status(500).json({ message: 'Error al obtener órdenes' });
-  }
-});
+// Crear pedido
+router.post("/", protect, createStripeOrder);
+
+// Obtener todos los pedidos (solo admin)
+router.get("/", protect, authorizeRoles("admin"), getAllOrders);
+
+// ✅ Obtener pedidos del usuario autenticado
+router.get("/user", authMiddleware, getUserOrders);
+
+router.put('/:id/status', protect, authorizeRoles('admin'), updateOrderStatus);
+
+router.post("/stripe", protect, createStripeOrder);
 
 module.exports = router;

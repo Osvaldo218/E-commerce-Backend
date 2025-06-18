@@ -44,7 +44,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use("/api/orders", orderRoutes);
-app.use("/api/orders", stripeRoutes);
+app.use("/api/stripe", stripeRoutes);
 app.use("/api/reports", require("./routes/reportRoutes"));
 app.use("/api/checkout", require("./routes/checkoutRoutes"));
 app.use("/api/cart", require("./routes/cartRoutes"));
