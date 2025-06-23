@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { protect, authMiddleware, authorizeRoles } = require("../middleware/authMiddleware");
+
 const {
   createStripeOrder,
   getAllOrders,
@@ -8,17 +8,24 @@ const {
   updateOrderStatus,
 } = require("../controllers/orderController");
 
-// Crear pedido
-router.post("/", protect, createStripeOrder);
+const {
+  protect,
+  authorizeRoles,
+} = require("../middleware/authMiddleware");
 
-// Obtener todos los pedidos (solo admin)
+// 🧾 Crear una nueva orden con pago (Stripe)
+router.post("/stripe", protect, createStripeOrder);
+
+// Opcional: ruta /pagar si quieres mantenerla separada (puedes eliminarla si no)
+router.post("/pagar", protect, createStripeOrder);
+
+// 📦 Obtener todas las órdenes (solo admin)
 router.get("/", protect, authorizeRoles("admin"), getAllOrders);
 
-// ✅ Obtener pedidos del usuario autenticado
-router.get("/user", authMiddleware, getUserOrders);
+// 📦 Obtener órdenes del usuario autenticado
+router.get("/user", protect, getUserOrders);
 
-router.put('/:id/status', protect, authorizeRoles('admin'), updateOrderStatus);
-
-router.post("/stripe", protect, createStripeOrder);
+// 🔁 Actualizar el estado de una orden (admin)
+router.put("/:id/status", protect, authorizeRoles("admin"), updateOrderStatus);
 
 module.exports = router;
