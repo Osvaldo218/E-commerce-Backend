@@ -98,9 +98,30 @@ const updateOrderStatus = async (req, res) => {
   }
 };
 
+const getTotalSales = async (req, res) => {
+  try {
+    const result = await Order.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalSales: { $sum: "$totalAmount" },
+          totalOrders: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const stats = result[0] || { totalSales: 0, totalOrders: 0 };
+    res.json(stats);
+  } catch (error) {
+    console.error("❌ Error al calcular total sales:", error);
+    res.status(500).json({ message: "Error al obtener estadísticas" });
+  }
+};
+
 module.exports = {
   createStripeOrder,
   getUserOrders,
   getAllOrders,
   updateOrderStatus,
+  getTotalSales,
 };

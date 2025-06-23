@@ -6,6 +6,7 @@ const {
   getAllOrders,
   getUserOrders,
   updateOrderStatus,
+  getTotalSales,
 } = require("../controllers/orderController");
 
 const {
@@ -27,5 +28,7 @@ router.get("/user", protect, getUserOrders);
 
 // 🔁 Actualizar el estado de una orden (admin)
 router.put("/:id/status", protect, authorizeRoles("admin"), updateOrderStatus);
+
+router.get("/totalsales", protect, authorizeRoles("admin"), getTotalSales);
 
 module.exports = router;
