@@ -59,12 +59,7 @@ const getUserOrders = async (req, res) => {
     const orders = await Order.find({ user: req.user._id }).populate("user", "name");
     res.status(200).json(orders);
   } catch (error) {
-    console.error("❌ Error en createStripeOrder:", {
-      message: error.message,
-      type: error.type,
-      code: error.code,
-      raw: error.raw,
-    });
+    console.error("❌ Error al obtener órdenes del usuario:", error);
     res.status(500).json({ message: "Error al obtener tus órdenes" });
   }
 };
