@@ -18,7 +18,7 @@ const createStripeOrder = async (req, res) => {
       currency: "mxn",
       payment_method: paymentMethodId,
       confirm: true,
-      return_url: "https://pointec-murex.vercel.app/users/orders",
+      return_url: "https://pointec-murex.vercel.app/user/orders",
     });
 
     // 🔁 Validar que el pago haya sido exitoso
