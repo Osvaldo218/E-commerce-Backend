@@ -35,7 +35,6 @@ const faq = [
     { question: "como uso un cupon de descuento", answer: "Ingresa el código del cupón en el checkout antes de completar tu compra." },
     { question: "puedo combinar varias promociones", answer: "No, solo se puede usar un cupón de descuento por compra." },
     { question: "hay promociones por primera compra", answer: "Sí, registrándote puedes recibir un cupón de bienvenida para tu primera compra." },
-    { question: "los cupones tienen vencimiento", answer: "Sí, cada cupón tiene una fecha de expiración visible en sus condiciones de uso." },
 
     // 🏬 PRODUCTOS Y DISPONIBILIDAD
     { question: "como saber si un producto esta en stock", answer: "Cada producto muestra su disponibilidad en la página de compra." },
