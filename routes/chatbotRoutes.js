@@ -54,18 +54,15 @@ const faq = [
     // 👤 CUENTAS Y SEGURIDAD
     { question: "como creo una cuenta", answer: "Haz clic en 'Pointec', después haz click en 'Regístrate' y completa el formulario con tu información." },
     { question: "como creo un usuario", answer: "Haz clic en 'Pointec', después haz click en 'Regístrate' y completa el formulario con tu información." },
-    { question: "olvide mi contraseña", answer: "Puedes restablecer tu contraseña en la página de inicio de sesión, haciendo clic en '¿Olvidaste tu contraseña?'." },
-    { question: "como cambio mi direccion de correo", answer: "Puedes actualizar tu correo en la configuración de tu cuenta." },
     { question: "es seguro comprar en su sitio", answer: "Sí, usamos cifrado SSL y métodos de pago seguros como Stripe y PayPal." },
     { question: "como elimino mi cuenta", answer: "Contáctanos directamente si deseas cerrar tu cuenta de manera permanente." },
-    { question: "puedo tener varias direcciones guardadas", answer: "Sí, puedes agregar múltiples direcciones en tu perfil y seleccionarlas en el checkout." },
+    { question: "puedo tener varias direcciones guardadas", answer: "Sí, puedes agregar múltiples direcciones en Dirección y seleccionarlas en el checkout." },
 
     // 🔧 SOPORTE TÉCNICO
-    { question: "como contacto con soporte", answer: "Puedes contactarnos por chat en vivo o al correo soporte@pointec.com." },
-    { question: "tienen atencion telefonica", answer: "Sí, puedes llamarnos al +123 456 7890 en horario laboral." },
+    { question: "como contacto con soporte", answer: "Puedes contactarnos al correo soporte@pointec.com." },
+    { question: "tienen atencion telefonica", answer: "Sí, puedes llamarnos al 55 88 05 15 57 en horario laboral." },
     { question: "puedo cancelar un pedido", answer: "Sí, puedes cancelar un pedido antes de que sea enviado desde 'Mis Pedidos'." },
     { question: "tienen soporte 24/7", answer: "Nuestro soporte en línea está disponible de lunes a sábado de 9:00 a.m. a 9:00 p.m." },
-    { question: "puedo hablar con un asesor", answer: "Sí, puedes pedir hablar con un asesor humano desde el chat en vivo." },
 
     // 📡 INFORMACIÓN TÉCNICA Y PLATAFORMA
     { question: "puedo comprar desde mi celular", answer: "Sí, nuestra tienda está optimizada para dispositivos móviles." },
