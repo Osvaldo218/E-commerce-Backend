@@ -5,11 +5,16 @@ const Order = require("../models/Order");
 // ✅ Crear orden y procesar pago con Stripe
 const createStripeOrder = async (req, res) => {
   try {
-    const { items, totalAmount, paymentMethodId } = req.body;
+    const { items, totalAmount, paymentMethodId, shippingOption, shippingAddress } = req.body;
 
     // 🔒 Validar datos esenciales
-    if (!items || !Array.isArray(items) || items.length === 0 || !totalAmount || !paymentMethodId) {
+    if (!items || !Array.isArray(items) || items.length === 0 || !totalAmount || !paymentMethodId || !shippingOption) {
       return res.status(400).json({ message: "Faltan datos para procesar el pago." });
+    }
+
+    // Validar dirección si es envío a domicilio
+    if (shippingOption === "domicilio" && (!shippingAddress || shippingAddress.trim() === "")) {
+      return res.status(400).json({ message: "La dirección de envío es obligatoria." });
     }
 
     // 💳 Crear intención de pago
@@ -33,6 +38,8 @@ const createStripeOrder = async (req, res) => {
       items,
       totalAmount,
       paymentMethodId,
+      shippingOption,
+      shippingAddress: shippingOption === "domicilio" ? shippingAddress : "Recoger en almacén",
       status: "pagado",
     });
 
@@ -47,7 +54,7 @@ const createStripeOrder = async (req, res) => {
   } catch (error) {
     console.error("❌ Error en createStripeOrder:", error);
     res.status(500).json({
-      message: "Error al procesar el pago.",
+      message: "Error al procesar el pago o guardar la orden",
       error: error.message || "Error interno del servidor",
     });
   }
@@ -98,6 +105,7 @@ const updateOrderStatus = async (req, res) => {
   }
 };
 
+// 📊 Obtener estadísticas de ventas
 const getTotalSales = async (req, res) => {
   try {
     const result = await Order.aggregate([

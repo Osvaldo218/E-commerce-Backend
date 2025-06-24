@@ -6,16 +6,26 @@ const UserSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  role: { type: String, enum: ["admin", "vendedor", "cliente"], default: "cliente" },
+  role: {
+    type: String,
+    enum: ["admin", "vendedor", "cliente"],
+    default: "cliente"
+  },
   verified: { type: Boolean, default: false },
 
   // 📩 Verificación de correo electrónico
-  verificationCode: { type: String }, // Código OTP
-  verificationExpires: { type: Date }, // Expira en 10 minutos
+  verificationCode: String,
+  verificationExpires: Date,
 
   // 🔐 Recuperación de contraseña
   resetPasswordToken: String,
-  resetPasswordExpire: Date
+  resetPasswordExpire: Date,
+
+  // 📦 NUEVO: Direcciones guardadas por el usuario
+  addresses: {
+    type: [String],
+    default: [],
+  }
 }, { timestamps: true });
 
 // 📌 Hashear contraseña antes de guardar

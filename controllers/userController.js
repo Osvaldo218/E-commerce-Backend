@@ -63,4 +63,49 @@ const deleteUser = async (req, res) => {
   }
 };
 
-module.exports = { getUserProfile, getAllUsers, updateUser, deleteUser };
+const getUserAddresses = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "Usuario no encontrado." });
+
+    res.json({ addresses: user.addresses || [] });
+  } catch (error) {
+    console.error("Error al obtener direcciones:", error);
+    res.status(500).json({ message: "Error al obtener direcciones" });
+  }
+};
+
+const addUserAddress = async (req, res) => {
+  try {
+    const { address } = req.body;
+    if (!address || address.trim() === "") {
+      return res.status(400).json({ message: "La dirección es obligatoria" });
+    }
+
+    const user = await User.findById(req.user.id);
+    user.addresses.push(address);
+    await user.save();
+
+    res.status(201).json({ message: "Dirección guardada correctamente", addresses: user.addresses });
+  } catch (error) {
+    console.error("Error al guardar dirección:", error);
+    res.status(500).json({ message: "Error al guardar dirección" });
+  }
+};
+
+const deleteUserAddress = async (req, res) => {
+  try {
+    const { address } = req.body;
+    const user = await User.findById(req.user.id);
+    user.addresses = user.addresses.filter((a) => a !== address);
+    await user.save();
+
+    res.json({ message: "Dirección eliminada", addresses: user.addresses });
+  } catch (error) {
+    console.error("Error al eliminar dirección:", error);
+    res.status(500).json({ message: "Error al eliminar dirección" });
+  }
+};
+
+module.exports = { getUserProfile, getAllUsers, updateUser, deleteUser, 
+  getUserAddresses, addUserAddress, deleteUserAddress, };

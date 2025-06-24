@@ -12,7 +12,6 @@ const chatbotRoutes = require("./routes/chatbotRoutes");
 const userRoutes = require("./routes/userRoutes");
 const favoritesRoutes = require("./routes/favoritesRoutes");
 
-
 dotenv.config();
 
 const app = express();
@@ -44,7 +43,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use("/api/orders", orderRoutes);
-
+app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/reports", require("./routes/reportRoutes"));
 app.use("/api/checkout", require("./routes/checkoutRoutes"));
 app.use("/api/cart", require("./routes/cartRoutes"));
