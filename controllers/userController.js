@@ -93,6 +93,32 @@ const addUserAddress = async (req, res) => {
   }
 };
 
+// ✏️ Editar una dirección del usuario
+const updateUserAddress = async (req, res) => {
+  const { oldAddress, newAddress } = req.body;
+
+  if (!oldAddress || !newAddress) {
+    return res.status(400).json({ message: "Faltan datos para actualizar la dirección." });
+  }
+
+  try {
+    const user = await User.findById(req.user._id);
+
+    const index = user.addresses.findIndex((addr) => addr === oldAddress);
+    if (index === -1) {
+      return res.status(404).json({ message: "Dirección no encontrada." });
+    }
+
+    user.addresses[index] = newAddress;
+    await user.save();
+
+    res.json({ message: "Dirección actualizada correctamente", addresses: user.addresses });
+  } catch (error) {
+    console.error("Error al actualizar dirección:", error);
+    res.status(500).json({ message: "Error al actualizar dirección" });
+  }
+};
+
 const deleteUserAddress = async (req, res) => {
   try {
     const { address } = req.body;
@@ -108,4 +134,4 @@ const deleteUserAddress = async (req, res) => {
 };
 
 module.exports = { getUserProfile, getAllUsers, updateUser, deleteUser, 
-  getUserAddresses, addUserAddress, deleteUserAddress, };
+  getUserAddresses, addUserAddress, updateUserAddress, deleteUserAddress, };

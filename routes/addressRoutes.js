@@ -34,6 +34,38 @@ router.get("/", protect, async (req, res) => {
   }
 });
 
+// ✏️ Actualizar dirección existente
+router.put("/:id", protect, async (req, res) => {
+  try {
+    const { alias, fullAddress, city, state, postalCode, country } = req.body;
+
+    const updated = await Address.findOneAndUpdate(
+      { _id: req.params.id, user: req.user._id },
+      {
+        alias,
+        fullAddress,
+        city,
+        state,
+        postalCode,
+        country,
+      },
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ message: "Dirección no encontrada o no autorizada" });
+    }
+
+    res.json({
+      message: "Dirección actualizada correctamente",
+      address: updated,
+    });
+  } catch (error) {
+    console.error("❌ Error al actualizar dirección:", error);
+    res.status(500).json({ message: "Error al actualizar la dirección" });
+  }
+});
+
 // 🗑️ Eliminar dirección
 router.delete("/:id", protect, async (req, res) => {
   try {
